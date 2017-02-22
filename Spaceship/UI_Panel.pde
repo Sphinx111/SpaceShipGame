@@ -3,6 +3,7 @@ import java.text.DecimalFormat;
 class UI_Panel {
   
   private DecimalFormat df2 = new DecimalFormat(".##");
+  private DecimalFormat df1 = new DecimalFormat("###,###.##");
   dropDownMenu activeDropdown;
   
   //constructor runs once at sketch setup
@@ -35,11 +36,11 @@ class UI_Panel {
   HScrollbar hs1;
   HScrollbar hs2;
   HScrollbar hs3;
-  int scrollbarX = 500;
+  int scrollbarX = 600;
   int scrollbar1Y = 8;
   int scrollbar2Y = 28;
   int scrollbar3Y = 48;
-  int scrollbarWidth = 500;
+  int scrollbarWidth = 400;
   double scroll1Ratio = 0;
   double scroll2Ratio = 0;
   double scroll3Ratio = 0;
@@ -93,13 +94,25 @@ class UI_Panel {
   //Draw text to screen showing resource elements.
   //variables set position of text elements on screen.
   
-  int metalXPos = 100;
-  int energyXPos = 200;
-  int storesXPos = 300;
+  int distanceXPos = 20;
+  int velocityXPos = distanceXPos;
+  int velocityYPos = 60;
+  int metalXPos = 200;
+  int energyXPos = 300;
+  int storesXPos = 400;
    
   void drawResourceElements() {
+    float distance = travelModule.getDistance();
+    float velocity = travelModule.getVelocity();
     double[] currentResources = resModule.getResources();
     fill(0);
+    String distanceText = "Dist: " + df1.format(distance/1000) + " km";
+    String velocityText;
+    if (velocity <= 1000) {
+      velocityText = "Vel: " + df1.format(velocity) + " m/s";
+    } else {
+      velocityText = "Vel: " + df1.format(velocity/1000) + " km/s";
+    }
     String metalText = "Metal: " + df2.format(currentResources[0]);
     String energyText = "Energy: " + df2.format(currentResources[1]);
     String storesText;
@@ -108,6 +121,8 @@ class UI_Panel {
     } else {
       storesText = "Stores: 0";
     }
+    text(distanceText,distanceXPos,40);
+    text(velocityText,velocityXPos,velocityYPos);
     text(metalText, metalXPos,40);
     text(energyText, energyXPos, 40);
     text(storesText, storesXPos, 40);
@@ -131,14 +146,16 @@ class dropDownMenu {
   float xOrigin;
   float yOrigin;
   float xWidth = 120;
-  float yHeight = 80;
-  float option1Y = 10;
   float optionHeight = 20;
+  int numOfOptions = 5;
+  float yHeight = optionHeight * numOfOptions;
+  float option1Y = 10;
   float optionTextOffset = 5;
   boolean option1Active = false;
   boolean option2Active = false;
   boolean option3Active = false;
   boolean option4Active = false;
+  boolean option5Active = false;
   int gridX;
   int gridY;
   
@@ -157,21 +174,31 @@ class dropDownMenu {
           option2Active = false;
           option3Active = false;
           option4Active = false;
+          option5Active = false;
         } else if (mouseY < yOrigin + (2*optionHeight)) {
           option2Active = true;
           option1Active = false;
           option3Active = false;
           option4Active = false;
+          option5Active = false;
         } else if (mouseY < yOrigin + (3*optionHeight)) {
           option1Active = false;
           option2Active = false;
           option3Active = true;
           option4Active = false;
+          option5Active = false;
         } else if (mouseY < yOrigin + (4*optionHeight)) {
           option4Active = true;
           option3Active = false;
           option2Active = false;
           option1Active = false;
+          option5Active = false;
+        } else if (mouseY < yOrigin + (5*optionHeight)) {
+          option4Active = false;
+          option3Active = false;
+          option2Active = false;
+          option1Active = false;
+          option5Active = true;
         }
       }
       if (option1Active && mousePressed) {
@@ -184,6 +211,9 @@ class dropDownMenu {
         mainUI.activeDropdown = null;
       } else if (option4Active && mousePressed) {
         newLayout.toggleLifeSupport(gridX,gridY);
+        mainUI.activeDropdown = null;
+      } else if (option5Active && mousePressed) {
+        newLayout.addEngine(gridX,gridY);
         mainUI.activeDropdown = null;
       }
   }
@@ -248,6 +278,20 @@ class dropDownMenu {
       fill(255);
     }
     text("togg lifeSupp (10m)", xOrigin + optionTextOffset,yOrigin+option1Y+(3*optionHeight));
+    
+    //fifth optionBox
+    if (!option5Active) {
+      noFill();
+    } else {
+      fill(20);
+    }
+    rect(xOrigin,yOrigin + (4 * optionHeight),xWidth,optionHeight); //second option panel
+    if (!option5Active) {
+      fill(0);
+    } else {
+      fill(255);
+    }
+    text("+Engine (50m)", xOrigin + optionTextOffset,yOrigin+option1Y+(4*optionHeight));
     
     textSize(12);
   }

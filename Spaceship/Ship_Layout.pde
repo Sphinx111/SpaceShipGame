@@ -21,10 +21,16 @@ class Ship_Layout {
            }
          }
        }
-       addRoom(0,-1);
-       addRoom(-1,-1);
-       addRoom(0,2);
-       addRoom(-1,2);
+       {
+         addRoom(0,-1);
+         addRoom(-1,-1);
+         gridKey tempKey = new gridKey(-1,-1);
+         layoutMap.get(tempKey).engineForce = 50;
+         addRoom(0,2);
+         addRoom(-1,2);
+         tempKey = new gridKey(-1,2);
+         layoutMap.get(tempKey).engineForce = 50;
+       }
   }
   
   //takes x,y float values of MousePos, converts to grid and checks if room exists.
@@ -49,10 +55,11 @@ class Ship_Layout {
   }
   
   void upgradeRoom(int x, int y) {
-    if (resModule.getMetals() >= 10) {
-      gridKey newKey = new gridKey(x,y);
-      if (layoutMap.get(newKey).energyGeneration < 100) {
-        layoutMap.get(newKey).energyGeneration += 10;
+    gridKey newKey = new gridKey(x,y);
+    Ship_Room currentRoom = layoutMap.get(newKey);
+    if (resModule.getMetals() >= 10 && currentRoom.canBuildGenerator()) {
+      if (currentRoom.energyGeneration < 100) {
+        currentRoom.energyGeneration += 10;
         resModule.addMetals(-10);
       }
     }
@@ -62,9 +69,20 @@ class Ship_Layout {
     if (resModule.getMetals() >= 5) {
       gridKey newKey = new gridKey(x,y);
       Ship_Room currentRoom = layoutMap.get(newKey);
-      if (currentRoom.energyGeneration <= 0) {
+      if (currentRoom.canBuildStores()) {
         currentRoom.storesProduction += 20;
         resModule.addMetals(-5);
+      }
+    }
+  }
+  
+  void addEngine(int x, int y) {
+    if (resModule.getMetals() >= 50) {
+      gridKey newKey = new gridKey(x,y);
+      Ship_Room currentRoom = layoutMap.get(newKey);
+      if (currentRoom.canBuildEngine()) {
+        currentRoom.engineForce += 50;
+        resModule.addMetals(-50);
       }
     }
   }
@@ -80,19 +98,23 @@ class Ship_Layout {
   void toggleLifeSupport(int x, int y) {
     gridKey newKey = new gridKey(x,y);
     Ship_Room currentRoom = layoutMap.get(newKey);
-    if (currentRoom.lifeSupportActive) {
-      currentRoom.lifeSupportActive = false;
-      resModule.addMetals(5);
-    } else {
-      if (resModule.getMetals() > 10) {
-        currentRoom.lifeSupportActive = true;
-        resModule.addMetals(-10);
+    if (currentRoom.canBuildLifeSupport()) {
+      if (currentRoom.lifeSupportActive) {
+        currentRoom.lifeSupportActive = false;
+        resModule.addMetals(5);
+      } else {
+        if (resModule.getMetals() > 10) {
+          currentRoom.lifeSupportActive = true;
+          resModule.addMetals(-10);
+        }
       }
     }
   }
   
   //TODO - move behaviour into each room's "show()" function
   void show() {
+    fill(150);
+    rect(0,mainUI.uiHeight,width,height);
     for (Ship_Room room : layoutMap.values()) {
       float[] roomPos = {room.coords[0],room.coords[1]};
       float[] pixPos = GridManager.gridToPixel(roomPos);
@@ -121,12 +143,21 @@ class Ship_Layout {
         fill(100);
         rect(pixPos[0],pixPos[1],gridScale/5,gridScale/5);
       }
+      if (room.engineForce > 0) {
+        fill(20,190,20);
+        rect(pixPos[0],pixPos[1]+(gridScale/4),gridScale,gridScale/2);
+        fill(0);
+        textSize(gridScale/4);
+        text("" + room.engineForce,pixPos[0]+2,pixPos[1]+(gridScale/2));
+        textSize(12);
+      }
     }
   }
   
   float generationTotal = 0;
   float popMaxTotal = 0;
   float storesProductionTotal = 0;
+  float engineForceTotal = 0;
   
   float getEnergyGenTotal() {
     return generationTotal;
@@ -136,6 +167,7 @@ class Ship_Layout {
     generationTotal = 0;
     popMaxTotal = 0;
     storesProductionTotal = 0;
+    engineForceTotal = 0;
     int roomCount = 0;
     for (Ship_Room room : layoutMap.values()) {
       Oxygen_Module.updateO2(room);
@@ -146,12 +178,14 @@ class Ship_Layout {
         popMaxTotal += room.populationCapacity;
       }
       storesProductionTotal += room.storesProduction;
+      engineForceTotal += room.engineForce;
       roomCount++;
     }
     //Send updated energy Production stats to energy module
     Energy_Module.setEnergyProduction(generationTotal);
     popModule.setAbsMaxPop(popMaxTotal);
     Stores_Module.setStoresProduction(storesProductionTotal);
+    travelModule.addImpulse(engineForceTotal);
     volume = roomCount;
   }
   
@@ -196,12 +230,46 @@ class Ship_Room {
   float O2Percent;
   float energyGeneration = 0;
   float storesProduction = 0;
+  float engineForce = 0;
   float populationCapacity = 20;
   boolean lifeSupportActive = false;
+  boolean filled = false;
   
   Ship_Room(int[] pos) {
     coords = pos; 
     O2Percent = 0;
+  }
+  
+  public boolean canBuildGenerator() {
+    if (storesProduction == 0 && engineForce == 0 && !lifeSupportActive) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  public boolean canBuildStores() {
+    if (energyGeneration == 0 && engineForce == 0 && !lifeSupportActive) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  public boolean canBuildLifeSupport() {
+    if (energyGeneration == 0 && engineForce == 0 && storesProduction == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  public boolean canBuildEngine() {
+    if (energyGeneration == 0 && storesProduction == 0 && !lifeSupportActive) {
+      return true;
+    } else {
+      return false;
+    }
   }
   
 }

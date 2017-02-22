@@ -2,6 +2,7 @@ public static UI_Panel mainUI;
 public static Population_Module popModule;
 public static Resource_Module resModule;
 public static Ship_Layout newLayout;
+public static Travel_Module travelModule;
 public static boolean debug = true;
 
 boolean gamePaused = false;
@@ -12,19 +13,19 @@ void setup() {
   popModule = new Population_Module();
   resModule = new Resource_Module();
   newLayout = new Ship_Layout();
-  
+  travelModule = new Travel_Module();
   
 }
 
 void draw() {
+  //The game "ticks" over once every 30 frames
   if (frameCount % 30 == 0) {
-    fill(150);
-    rect(0,mainUI.uiHeight,width,height);
     resModule.updateResources();
     popModule.updatePopulation();
-    newLayout.show();
     newLayout.update();
+    travelModule.update();
   }
+  newLayout.show();
   mainUI.show();
 }
 
