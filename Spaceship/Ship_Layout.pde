@@ -22,14 +22,24 @@ class Ship_Layout {
          }
        }
        {
-         addRoom(0,-1);
-         addRoom(-1,-1);
-         gridKey tempKey = new gridKey(-1,-1);
-         layoutMap.get(tempKey).engineForce = 50;
-         addRoom(0,2);
-         addRoom(-1,2);
-         tempKey = new gridKey(-1,2);
-         layoutMap.get(tempKey).engineForce = 50;
+         int[] room2 = {0,-1};
+         gridKey tempKey2 = new gridKey(0,-1);
+         layoutMap.put(tempKey2, new Ship_Room(room2));
+         layoutMap.get(tempKey2).O2Percent = 100;
+         int[] room1 = {-1,-1};
+         gridKey tempKey1 = new gridKey(-1,-1);
+         layoutMap.put(tempKey1, new Ship_Room(room1));
+         layoutMap.get(tempKey1).O2Percent = 100;
+         layoutMap.get(tempKey1).engineForce = 50;
+         int[] room3 = {0,2};
+         tempKey2 = new gridKey(0,2);
+         layoutMap.put(tempKey2,new Ship_Room(room3));
+         layoutMap.get(tempKey2).O2Percent = 100;
+         int[] room4 = {-1,2};
+         tempKey1 = new gridKey(-1,2);
+         layoutMap.put(tempKey1, new Ship_Room(room4));
+         layoutMap.get(tempKey1).O2Percent = 100;
+         layoutMap.get(tempKey1).engineForce = 50;
        }
   }
   
@@ -113,8 +123,8 @@ class Ship_Layout {
   
   //TODO - move behaviour into each room's "show()" function
   void show() {
-    fill(150);
-    rect(0,mainUI.uiHeight,width,height);
+    stroke(0);
+    strokeWeight(1);
     for (Ship_Room room : layoutMap.values()) {
       float[] roomPos = {room.coords[0],room.coords[1]};
       float[] pixPos = GridManager.gridToPixel(roomPos);

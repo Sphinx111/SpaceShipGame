@@ -56,16 +56,18 @@ static class Energy_Module {
   
   static double energyConsumption = 0.5;
   static float energyProduction = 0;
+  static float maxConsumptionRate = 2;
+  static float energyToLifeSupport = 0.5;
+  static float energyToEngines = 0.5;
   
   static double updateEnergy(double currentEnergy) {
     
       double newEnergy = currentEnergy - energyConsumption + energyProduction;
       if (newEnergy >= 0) {
-      return newEnergy;
+        return newEnergy;
       } else {
-      return 0;
+        return 0;
       }
-    
   }
   
   static void setEnergyConsumption(double newConsumption) {
@@ -81,8 +83,7 @@ static class Energy_Module {
   }
   
   static void setEnergyConsumptionPercentage(double ratio) {
-    double currentEnergy = resModule.getEnergy();
-    energyConsumption = currentEnergy * ratio;
+    energyConsumption = energyProduction * ratio * maxConsumptionRate;
   }
   
 }
@@ -134,9 +135,9 @@ static class Oxygen_Module {
       }
     }
     
-    float occupationModifier = popModule.totalPop / (newLayout.volume) + 1;
+    float occupationModifier = popModule.totalPop / (newLayout.volume + 1);
     if (currentRoom.lifeSupportActive) {
-      O2ProductionRate = (float)Energy_Module.getConsumption() / newLayout.volume;
+      O2ProductionRate = (float)Energy_Module.getConsumption() * Energy_Module.energyToLifeSupport / newLayout.volume;
     } else {
       O2ProductionRate = (float)Energy_Module.getConsumption() / newLayout.volume * (1/lifeSupportModifier);
     }

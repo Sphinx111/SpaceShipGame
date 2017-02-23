@@ -3,7 +3,7 @@ import java.text.DecimalFormat;
 class UI_Panel {
   
   private DecimalFormat df2 = new DecimalFormat(".##");
-  private DecimalFormat df1 = new DecimalFormat("###,###.##");
+  private DecimalFormat df1 = new DecimalFormat("#,###,###.##");
   dropDownMenu activeDropdown;
   
   //constructor runs once at sketch setup
@@ -63,7 +63,7 @@ class UI_Panel {
     //hs1.display();
     fill(20);
     text("Energy: ", scrollbarX-60,scrollbar2Y+2);
-    text("" + df2.format(scroll2Ratio * resModule.getEnergy()) + " GJ per day", scrollbarX + scrollbarWidth, scrollbar2Y+2);
+    text("" + df2.format(Energy_Module.energyConsumption) + " GJ per day", scrollbarX + scrollbarWidth, scrollbar2Y+2);
     hs2.display();
     fill(20);
     text("Rationing: ", scrollbarX-60,scrollbar3Y+2);
@@ -110,8 +110,10 @@ class UI_Panel {
     String velocityText;
     if (velocity <= 1000) {
       velocityText = "Vel: " + df1.format(velocity) + " m/s";
-    } else {
+    } else if (velocity < (travelModule.c / 10) ) {
       velocityText = "Vel: " + df1.format(velocity/1000) + " km/s";
+    } else {
+      velocityText = "Vel: " + df2.format(travelModule.velocity / travelModule.c) + " c";
     }
     String metalText = "Metal: " + df2.format(currentResources[0]);
     String energyText = "Energy: " + df2.format(currentResources[1]);
