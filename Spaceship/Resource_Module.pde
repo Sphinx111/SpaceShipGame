@@ -61,7 +61,8 @@ static class Energy_Module {
   static float energyToEngines = 0.5;
   
   static double updateEnergy(double currentEnergy) {
-    
+      
+      energyProduction = newLayout.getEnergyGenTotal();    
       double newEnergy = currentEnergy - energyConsumption + energyProduction;
       if (newEnergy >= 0) {
         return newEnergy;
@@ -93,6 +94,7 @@ static class Stores_Module {
   static float storesProduction = 0;
   
   static double updateStores(double currentStores) {
+     storesProduction = newLayout.getStoresProduction();
      if (currentStores >= 0) {
      double newStores = currentStores - (popModule.getConsumption()) + storesProduction;
      return newStores;
@@ -124,8 +126,8 @@ static class Oxygen_Module {
   static float O2ProductionRate = 0;
   static float lifeSupportModifier = 100;
   
-  static void updateO2(Ship_Room currentRoom) {
-    Ship_Room[] adjacentRooms = newLayout.getAdjacentRooms(currentRoom.coords[0],currentRoom.coords[1]);
+  static void updateO2(Ship_Layout thisShip, Ship_Room currentRoom) {
+    Ship_Room[] adjacentRooms = thisShip.getAdjacentRooms(currentRoom.coords[0],currentRoom.coords[1]);
     for (Ship_Room room : adjacentRooms) {
       float O2Transfer = 0;
       if (room != null) {
@@ -135,11 +137,11 @@ static class Oxygen_Module {
       }
     }
     
-    float occupationModifier = popModule.totalPop / (newLayout.volume + 1);
+    float occupationModifier = popModule.totalPop / (thisShip.volume + 1);
     if (currentRoom.lifeSupportActive) {
-      O2ProductionRate = (float)Energy_Module.getConsumption() * Energy_Module.energyToLifeSupport / newLayout.volume;
+      O2ProductionRate = (float)Energy_Module.getConsumption() * Energy_Module.energyToLifeSupport / thisShip.volume;
     } else {
-      O2ProductionRate = (float)Energy_Module.getConsumption() / newLayout.volume * (1/lifeSupportModifier);
+      O2ProductionRate = (float)Energy_Module.getConsumption() / thisShip.volume * (1/lifeSupportModifier);
     }
     currentRoom.O2Percent += O2ProductionRate - (occupationModifier * O2consumptionRate) ;
   }

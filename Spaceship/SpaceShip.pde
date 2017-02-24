@@ -3,6 +3,7 @@ public static Population_Module popModule;
 public static Resource_Module resModule;
 public static Ship_Layout newLayout;
 public static Travel_Module travelModule;
+public static Events_Module eventsModule;
 public static Background mainBackground;
 public static boolean debug = true;
 
@@ -16,6 +17,7 @@ void setup() {
   newLayout = new Ship_Layout();
   travelModule = new Travel_Module();
   mainBackground = new Background();
+  eventsModule = new Events_Module();
   
 }
 
@@ -25,6 +27,7 @@ void draw() {
     resModule.updateResources();
     popModule.updatePopulation();
     newLayout.update();
+    eventsModule.update();
     travelModule.update();
   }
   if (!gamePaused) {
@@ -32,6 +35,7 @@ void draw() {
   }
   mainBackground.show();
   newLayout.show();
+  eventsModule.show();
   mainUI.show();
 }
 
@@ -52,6 +56,15 @@ void keyPressed() {
  if (keyCode == UP) {
   double[] newRes = {100,100,250};
   resModule.setResources(newRes);  
+  eventsModule.activateRefugees();
+ }
+ 
+ if (keyCode == RIGHT) {
+   float[] newOffsets = {newLayout.xOffset + 5, newLayout.yOffset};
+   newLayout.setOffset(newOffsets);
+ } else if (keyCode == LEFT) {
+   float[] newOffsets = {newLayout.xOffset - 5, newLayout.yOffset};
+   newLayout.setOffset(newOffsets);
  }
  
  if (keyCode == DOWN) {
