@@ -5,7 +5,9 @@ public static Ship_Layout newLayout;
 public static Travel_Module travelModule;
 public static Events_Module eventsModule;
 public static Background mainBackground;
+public static Text_Interface textInterface;
 public static boolean debug = true;
+public static int updateRate = 30;
 
 boolean gamePaused = false;
 
@@ -18,28 +20,32 @@ void setup() {
   travelModule = new Travel_Module();
   mainBackground = new Background();
   eventsModule = new Events_Module();
+  textInterface = new Text_Interface();
   
 }
 
 void draw() {
   //The game "ticks" over once every 30 frames
-  if (frameCount % 30 == 0 && !gamePaused) {
+  if (frameCount % updateRate == 0 && !gamePaused) {
     resModule.updateResources();
     popModule.updatePopulation();
     newLayout.update();
-    eventsModule.update();
     travelModule.update();
   }
   if (!gamePaused) {
     mainBackground.update();
+    eventsModule.updateMovement();
   }
   mainBackground.show();
   newLayout.show();
   eventsModule.show();
   mainUI.show();
+  textInterface.update();
+  textInterface.show();
 }
 
 void mousePressed() {
+  textInterface.checkMousePress();
    if (mouseY > mainUI.uiHeight) {
      if (mainUI.activeDropdown == null) {
        if (mouseButton == LEFT) {
@@ -56,15 +62,12 @@ void keyPressed() {
  if (keyCode == UP) {
   double[] newRes = {100,100,250};
   resModule.setResources(newRes);  
-  eventsModule.activateRefugees();
  }
  
  if (keyCode == RIGHT) {
-   float[] newOffsets = {newLayout.xOffset + 5, newLayout.yOffset};
-   newLayout.setOffset(newOffsets);
+   newLayout.moveShip(5,0);
  } else if (keyCode == LEFT) {
-   float[] newOffsets = {newLayout.xOffset - 5, newLayout.yOffset};
-   newLayout.setOffset(newOffsets);
+   newLayout.moveShip(-5,0);
  }
  
  if (keyCode == DOWN) {

@@ -110,7 +110,7 @@ class UI_Panel {
     String velocityText;
     if (velocity <= 1000) {
       velocityText = "Vel: " + df1.format(velocity) + " m/s";
-    } else if (velocity < (travelModule.c / 10) ) {
+    } else if (velocity < (travelModule.c / 100) ) {
       velocityText = "Vel: " + df1.format(velocity/1000) + " km/s";
     } else {
       velocityText = "Vel: " + df2.format(travelModule.velocity / travelModule.c) + " c";

@@ -10,6 +10,10 @@ class Population_Module {
     totalPop = newPop;  
   }
   
+  void addPop(int add) {
+    totalPop += add;
+  }
+  
   void setAbsMaxPop(float max) {
     maxPop = (int)max;
   }

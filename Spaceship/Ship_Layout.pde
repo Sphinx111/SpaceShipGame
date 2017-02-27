@@ -7,6 +7,10 @@ class Ship_Layout {
   float xOffset = 350;
   float yOffset = mainUI.uiHeight + 200;
   boolean isPlayerShip = false;
+  int[] starboardDock = new int[2];
+  int[] portDock;
+  int[] sternDock;
+  int[] bowDock;
   
   Ship_Layout() {
     isPlayerShip = true;
@@ -34,16 +38,18 @@ class Ship_Layout {
          gridKey tempKey1 = new gridKey(-1,-1);
          layoutMap.put(tempKey1, new Ship_Room(room1));
          layoutMap.get(tempKey1).O2Percent = 100;
-         layoutMap.get(tempKey1).engineForce = 50;
+         layoutMap.get(tempKey1).engineForce = 10;
          int[] room3 = {0,2};
          tempKey2 = new gridKey(0,2);
          layoutMap.put(tempKey2,new Ship_Room(room3));
          layoutMap.get(tempKey2).O2Percent = 100;
+         starboardDock[0] = 0;
+         starboardDock[1] = 2;
          int[] room4 = {-1,2};
          tempKey1 = new gridKey(-1,2);
          layoutMap.put(tempKey1, new Ship_Room(room4));
          layoutMap.get(tempKey1).O2Percent = 100;
-         layoutMap.get(tempKey1).engineForce = 50;
+         layoutMap.get(tempKey1).engineForce = 10;
        }
   }
   
@@ -54,9 +60,23 @@ class Ship_Layout {
     }
   }
   
-  void setOffset(float[] offset) {
-    xOffset = offset[0];
-    yOffset = offset[1];
+  HashMap<gridKey, Ship_Room> getShipLayout() {
+    return layoutMap;
+  }
+  
+  void setOffset(float xOff, float yOff) {
+    xOffset = xOff;
+    yOffset = yOff;
+  }
+  
+  void moveShip(float xChange, float yChange) {
+    xOffset += xChange;
+    yOffset += yChange;
+  }
+  
+  void setStarboardDock(int[] xy) {
+    starboardDock[0] = xy[0];
+    starboardDock[1] = xy[1];
   }
   
   //takes x,y float values of MousePos, converts to grid and checks if room exists.
@@ -105,7 +125,7 @@ class Ship_Layout {
       gridKey newKey = new gridKey(x,y);
       Ship_Room currentRoom = layoutMap.get(newKey);
       if (currentRoom.canBuildEngine()) {
-        currentRoom.engineForce += 50;
+        currentRoom.engineForce += 10;
         resModule.addMetals(-50);
       }
     }
@@ -138,7 +158,7 @@ class Ship_Layout {
     stroke(0);
     strokeWeight(1);
     for (Ship_Room room : layoutMap.values()) {
-      float[] roomPos = {room.coords[0],room.coords[1]};
+      int[] roomPos = {room.coords[0],room.coords[1]};
       float[] pixPos = GridManager.gridToPixel(roomPos,this);
       float O2DisplayAmount = (255 * room.O2Percent / 100);
       stroke(0);
@@ -273,6 +293,27 @@ class Ship_Room {
     O2Percent = 50;
   }
   
+  Ship_Room(int[] pos, float[] values) {
+    coords = pos;
+    O2Percent = values[0];
+    energyGeneration = values[1];
+    storesProduction = values[2];
+    engineForce = values[3];
+    populationCapacity = values[4];
+    if (values[5] > 0.5) {
+      lifeSupportActive = true;
+    }
+  }
+  
+  float[] getValues() {
+    float lifeSupportFloat = 0;
+    if (this.lifeSupportActive) {
+      lifeSupportFloat = 1;
+    }
+    float[] roomValues = {O2Percent,energyGeneration,storesProduction,engineForce,populationCapacity,lifeSupportFloat};
+    return roomValues;
+  }
+  
   public boolean canBuildGenerator() {
     if (storesProduction == 0 && engineForce == 0 && !lifeSupportActive && energyGeneration < 100 && resModule.getMetals() >= 10) {
       return true;
@@ -282,7 +323,7 @@ class Ship_Room {
   }
   
   public boolean canBuildStores() {
-    if (energyGeneration == 0 && engineForce == 0 && !lifeSupportActive) {
+    if (energyGeneration == 0 && engineForce == 0 && !lifeSupportActive && storesProduction < 100 && resModule.getMetals() >= 5) {
       return true;
     } else {
       return false;
@@ -298,7 +339,7 @@ class Ship_Room {
   }
   
   public boolean canBuildEngine() {
-    if (energyGeneration == 0 && storesProduction == 0 && !lifeSupportActive) {
+    if (energyGeneration == 0 && storesProduction == 0 && !lifeSupportActive && resModule.getMetals() >= 50 && engineForce < 1000) {
       return true;
     } else {
       return false;
@@ -314,7 +355,7 @@ static class GridManager {
     return gridLoc;
   }
   
-  public static float[] gridToPixel(float[] gridLoc, Ship_Layout thisShip) {
+  public static float[] gridToPixel(int[] gridLoc, Ship_Layout thisShip) {
     float[] pixLoc = {(gridLoc[0] * gridScale) + thisShip.xOffset, (gridLoc[1] * gridScale) + thisShip.yOffset};
     return pixLoc;
   }
