@@ -3,14 +3,39 @@ public static int gridScale = 40;
 class Ship_Layout {
   
   int volume = 8;
+  int shipWidth = 0;
   HashMap<gridKey, Ship_Room> layoutMap = new HashMap<gridKey, Ship_Room>();
   float xOffset = 350;
   float yOffset = mainUI.uiHeight + 200;
   boolean isPlayerShip = false;
+  boolean shipUpdated = true;
+  HashMap<Integer,Integer> frontOfShip = new HashMap<Integer,Integer>(); //for each row (Y) of grids, hashmap stores current higest X value in each row.
   int[] starboardDock = new int[2];
   int[] portDock;
   int[] sternDock;
   int[] bowDock;
+  
+  float ENGINE_UPGRADE_COST = 50;
+  float ENGINE_UPGRADE_EFFECT = 10;
+  float ENGINE_UPGRADE_MAX = 1000;
+  float ENGINE_POP_PENALTY = 10;
+  float ENERGY_UPGRADE_COST = 10;
+  float ENERGY_UPGRADE_EFFECT = 10;
+  float ENERGY_UPGRADE_MAX = 100;
+  float ENERGY_POP_PENALTY = 8;
+  float STORES_UPGRADE_COST = 5;
+  float STORES_UPGRADE_EFFECT = 20;
+  float STORES_UPGRADE_MAX = 100;
+  float STORES_POP_PENALTY = 5;
+  float BUSSARD_UPGRADE_COST = 2;
+  float BUSSARD_UPGRADE_EFFECT = 0.1;
+  float BUSSARD_UPGRADE_MAX = 0.2;
+  float BUSSARD_POP_PENALTY = 2;
+  float BUSSARD_REMOVE_VALUE = 1;
+  float LIFESUPP_UPGRADE_COST = 10;
+  float LIFESUPP_REMOVE_VALUE = 5;
+  float ROOM_BUILD_COST = 10;
+  float ROOM_REMOVE_VALUE = 9;
   
   Ship_Layout() {
     isPlayerShip = true;
@@ -92,8 +117,8 @@ class Ship_Layout {
   }
   
   void addRoom(int x, int y) {
-    if (resModule.getMetals() >= 10 && isConnectedToAnyRoom(x,y)) {
-      resModule.addMetals(-10);
+    if (resModule.getMetals() >= ROOM_BUILD_COST && isConnectedToAnyRoom(x,y)) {
+      resModule.addMetals(-ROOM_BUILD_COST);
       int[] newRoom = {x,y};
       gridKey newKey = new gridKey(x,y);
       layoutMap.put(newKey, new Ship_Room(newRoom));
@@ -104,30 +129,29 @@ class Ship_Layout {
     gridKey newKey = new gridKey(x,y);
     Ship_Room currentRoom = layoutMap.get(newKey);
     if (currentRoom.canBuildGenerator()) {
-      currentRoom.energyGeneration += 10;
-      resModule.addMetals(-10);
+      currentRoom.energyGeneration += ENERGY_UPGRADE_EFFECT;
+      currentRoom.populationCapacity -= ENERGY_POP_PENALTY;
+      resModule.addMetals(-ENERGY_UPGRADE_COST);
     }
   }
   
   void addStoresRoom(int x, int y) {
-    if (resModule.getMetals() >= 5) {
-      gridKey newKey = new gridKey(x,y);
-      Ship_Room currentRoom = layoutMap.get(newKey);
-      if (currentRoom.canBuildStores()) {
-        currentRoom.storesProduction += 20;
-        resModule.addMetals(-5);
-      }
+    gridKey newKey = new gridKey(x,y);
+    Ship_Room currentRoom = layoutMap.get(newKey);
+    if (currentRoom.canBuildStores()) {
+      currentRoom.storesProduction += STORES_UPGRADE_EFFECT;
+      currentRoom.populationCapacity -= STORES_POP_PENALTY;
+      resModule.addMetals(-STORES_UPGRADE_COST);
     }
   }
   
   void addEngine(int x, int y) {
-    if (resModule.getMetals() >= 50) {
-      gridKey newKey = new gridKey(x,y);
-      Ship_Room currentRoom = layoutMap.get(newKey);
-      if (currentRoom.canBuildEngine()) {
-        currentRoom.engineForce += 10;
-        resModule.addMetals(-50);
-      }
+    gridKey newKey = new gridKey(x,y);
+    Ship_Room currentRoom = layoutMap.get(newKey);
+    if (currentRoom.canBuildEngine()) {
+      currentRoom.engineForce += ENGINE_UPGRADE_EFFECT;
+      currentRoom.populationCapacity -= ENGINE_POP_PENALTY;
+      resModule.addMetals(-ENGINE_UPGRADE_COST);
     }
   }
   
@@ -137,6 +161,7 @@ class Ship_Layout {
     gridKey removeKey = new gridKey(removeRoom[0],removeRoom[1]);
     layoutMap.put(removeKey,null);
     layoutMap.remove(removeKey);
+    resModule.addMetals(ROOM_REMOVE_VALUE);
   }
   
   void toggleLifeSupport(int x, int y) {
@@ -144,13 +169,31 @@ class Ship_Layout {
     Ship_Room currentRoom = layoutMap.get(newKey);
       if (currentRoom.lifeSupportActive) {
         currentRoom.lifeSupportActive = false;
-        resModule.addMetals(5);
+        resModule.addMetals(LIFESUPP_REMOVE_VALUE);
       } else {
         if (currentRoom.canBuildLifeSupport()) {
           currentRoom.lifeSupportActive = true;
-          resModule.addMetals(-10);
+          resModule.addMetals(-LIFESUPP_UPGRADE_COST);
       }
     }
+  }
+  
+  void addBussardScoop(int x, int y) {
+    gridKey newKey = new gridKey(x,y);
+    Ship_Room currentRoom = layoutMap.get(newKey);
+    if (currentRoom.canBuildBussard()) {
+      currentRoom.bussardScoop += BUSSARD_UPGRADE_EFFECT;
+      currentRoom.populationCapacity -= BUSSARD_POP_PENALTY;
+      resModule.addMetals(-BUSSARD_UPGRADE_COST);
+    }
+  }
+  
+  void removeBussardScoop(int x, int y) {
+    gridKey newKey = new gridKey(x,y);
+    Ship_Room currentRoom = layoutMap.get(newKey);
+    currentRoom.bussardScoop = 0;
+    currentRoom.populationCapacity += BUSSARD_POP_PENALTY;
+    resModule.addMetals(BUSSARD_REMOVE_VALUE);
   }
   
   //TODO - move behaviour into each room's "show()" function
@@ -193,6 +236,10 @@ class Ship_Layout {
         text("" + room.engineForce,pixPos[0]+2,pixPos[1]+(gridScale/2));
         textSize(12);
       }
+      if (room.bussardScoop > 0) {
+        fill(51);
+        rect(pixPos[0] + (3* gridScale/4), pixPos[1],gridScale/4,gridScale);
+      }
     }
   }
   
@@ -200,6 +247,7 @@ class Ship_Layout {
   float popMaxTotal = 1023456;
   float storesProductionTotal = 0;
   float engineForceTotal = 0;
+  float bussardScoopTotal = 0;
   
   float getEnergyGenTotal() {
     return generationTotal;
@@ -213,12 +261,16 @@ class Ship_Layout {
   float getEngineForce() {
     return engineForceTotal;
   }
+  float getBussardScoopTotal() {
+    return bussardScoopTotal;
+  }
   
   void update() {
     generationTotal = 0;
     popMaxTotal = 0;
     storesProductionTotal = 0;
     engineForceTotal = 0;
+    bussardScoopTotal = 0;
     int roomCount = 0;
     for (Ship_Room room : layoutMap.values()) {
       if (isPlayerShip) {
@@ -233,6 +285,19 @@ class Ship_Layout {
       storesProductionTotal += room.storesProduction;
       engineForceTotal += room.engineForce;
       roomCount++;
+      if (room.isFront) {
+        bussardScoopTotal += room.bussardScoop;
+      }
+      //Find front room of ship for each Y-row.
+      if (!frontOfShip.containsKey(room.coords[1])) {
+        frontOfShip.put(room.coords[1],room.coords[0]);
+        room.isFront = true;
+      } else if (room.coords[0] > frontOfShip.get(room.coords[1])) {
+        gridKey removerKey = new gridKey(frontOfShip.get(room.coords[1]),room.coords[1]);
+        layoutMap.get(removerKey).isFront = false;
+        frontOfShip.put(room.coords[1],room.coords[0]);
+        room.isFront = true;
+      }
     }
     //Send updated energy Production stats to energy module
     // Energy_Module.setEnergyProduction(generationTotal);
@@ -285,8 +350,11 @@ class Ship_Room {
   float storesProduction = 0;
   float engineForce = 0;
   float populationCapacity = 20;
+  float bussardScoop = 0;
   boolean lifeSupportActive = false;
   boolean filled = false;
+  boolean isFront = false;
+  
   
   Ship_Room(int[] pos) {
     coords = pos; 
@@ -303,6 +371,7 @@ class Ship_Room {
     if (values[5] > 0.5) {
       lifeSupportActive = true;
     }
+    bussardScoop = values[6];
   }
   
   float[] getValues() {
@@ -310,12 +379,20 @@ class Ship_Room {
     if (this.lifeSupportActive) {
       lifeSupportFloat = 1;
     }
-    float[] roomValues = {O2Percent,energyGeneration,storesProduction,engineForce,populationCapacity,lifeSupportFloat};
+    float[] roomValues = {O2Percent,energyGeneration,storesProduction,engineForce,populationCapacity,lifeSupportFloat,bussardScoop};
     return roomValues;
   }
   
   public boolean canBuildGenerator() {
-    if (storesProduction == 0 && engineForce == 0 && !lifeSupportActive && energyGeneration < 100 && resModule.getMetals() >= 10) {
+    if (storesProduction == 0 && bussardScoop == 0 && engineForce == 0 && energyGeneration < newLayout.ENERGY_UPGRADE_MAX && resModule.getMetals() >= newLayout.ENERGY_UPGRADE_COST) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  public boolean canBuildBussard() {
+    if (storesProduction == 0 && engineForce == 0 && bussardScoop < newLayout.BUSSARD_UPGRADE_MAX && energyGeneration == 0 && resModule.getMetals() >= newLayout.BUSSARD_UPGRADE_COST && isFront) {
       return true;
     } else {
       return false;
@@ -323,7 +400,7 @@ class Ship_Room {
   }
   
   public boolean canBuildStores() {
-    if (energyGeneration == 0 && engineForce == 0 && !lifeSupportActive && storesProduction < 100 && resModule.getMetals() >= 5) {
+    if (energyGeneration == 0 && bussardScoop == 0 && engineForce == 0 && storesProduction < newLayout.STORES_UPGRADE_MAX && resModule.getMetals() >= newLayout.STORES_UPGRADE_COST) {
       return true;
     } else {
       return false;
@@ -331,7 +408,7 @@ class Ship_Room {
   }
   
   public boolean canBuildLifeSupport() {
-    if (energyGeneration == 0 && engineForce == 0 && storesProduction == 0 && resModule.getMetals() >= 10) {
+    if (resModule.getMetals() >= newLayout.LIFESUPP_UPGRADE_COST) {
       return true;
     } else {
       return false;
@@ -339,7 +416,7 @@ class Ship_Room {
   }
   
   public boolean canBuildEngine() {
-    if (energyGeneration == 0 && storesProduction == 0 && !lifeSupportActive && resModule.getMetals() >= 50 && engineForce < 1000) {
+    if (energyGeneration == 0 && bussardScoop == 0 && storesProduction == 0 && resModule.getMetals() >= newLayout.ENGINE_UPGRADE_COST && engineForce < newLayout.ENGINE_UPGRADE_MAX) {
       return true;
     } else {
       return false;

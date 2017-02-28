@@ -61,13 +61,15 @@ void mousePressed() {
 void keyPressed() {
  if (keyCode == UP) {
   double[] newRes = {100,100,250};
-  resModule.setResources(newRes);  
+  resModule.setResources(newRes); 
  }
  
  if (keyCode == RIGHT) {
    newLayout.moveShip(5,0);
+     gridScale += 5;
  } else if (keyCode == LEFT) {
    newLayout.moveShip(-5,0);
+   gridScale -= 5;
  }
  
  if (keyCode == DOWN) {

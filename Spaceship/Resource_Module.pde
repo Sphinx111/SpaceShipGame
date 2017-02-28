@@ -54,7 +54,7 @@ class Resource_Module {
 
 static class Energy_Module {
   
-  static double energyConsumption = 0.5;
+  static double energyConsumption = 0;
   static float energyProduction = 0;
   static float maxConsumptionRate = 2;
   static float energyToLifeSupport = 0.5;
@@ -75,16 +75,22 @@ static class Energy_Module {
     energyConsumption = newConsumption;
   }
   
+  static float getO2Usage () {
+    return energyToLifeSupport;
+  }
+  
+  static float getEngineUsage() {
+    return energyToEngines;
+  }
+  
   static double getConsumption() {
     return energyConsumption;
   }
   
-  static void setEnergyProduction(float newProduction) {
-    energyProduction = newProduction;
-  }
-  
   static void setEnergyConsumptionPercentage(double ratio) {
-    energyConsumption = energyProduction * ratio * maxConsumptionRate;
+    energyToLifeSupport = (float)(energyProduction * ratio);
+    energyToEngines = (float)(energyProduction * (1-ratio));
+    energyConsumption = energyProduction;
   }
   
 }
@@ -112,7 +118,7 @@ static class Stores_Module {
 static class Metal_Module {
   
   static double updateMetals(double current) {
-    return (current +  (popModule.totalPop * popModule.consumptionRate * 0.01));
+    return (current + newLayout.getBussardScoopTotal());
   }
   
 }
@@ -122,7 +128,7 @@ static class Oxygen_Module {
   // static float O2Reserves = 100;
   static float diffusionRate = 0.4;
   static float acceptableO2difference = 0;
-  static float O2consumptionRate = 0.1; //Percent Oxygen consumed by person, per room, per tick
+  static float O2consumptionRate = 5; //Percent Oxygen consumed by person, per room, per tick
   static float O2ProductionRate = 0;
   static float lifeSupportModifier = 100;
   
@@ -139,9 +145,9 @@ static class Oxygen_Module {
     
     float occupationModifier = popModule.totalPop / (thisShip.volume + 1);
     if (currentRoom.lifeSupportActive) {
-      O2ProductionRate = (float)Energy_Module.getConsumption() * Energy_Module.energyToLifeSupport / thisShip.volume;
+      O2ProductionRate = (float)Energy_Module.getO2Usage() / thisShip.volume;
     } else {
-      O2ProductionRate = (float)Energy_Module.getConsumption() / thisShip.volume * (1/lifeSupportModifier);
+      O2ProductionRate = (float)Energy_Module.getO2Usage() / thisShip.volume * (1/lifeSupportModifier);
     }
     currentRoom.O2Percent += O2ProductionRate - (occupationModifier * O2consumptionRate) ;
   }

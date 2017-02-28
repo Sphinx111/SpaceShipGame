@@ -46,7 +46,7 @@ class Refugee_Encounter {
     refugeeShip.layoutMap.get(key1).engineForce = 10;
     key1 = new gridKey(3,1);
     refugeeShip.layoutMap.get(key1).storesProduction = 20;
-    int[] dockPoint = {2,0};
+    int[] dockPoint = {1,0};
     refugeeShip.setStarboardDock(dockPoint);
   }
   
@@ -76,13 +76,13 @@ class Refugee_Encounter {
   void stage1Update() {
 
     System.out.println("Stage 1 Active");
-    float distance = newLayout.xOffset - refugeeShip.xOffset;
+    float distance = (newLayout.xOffset + (newLayout.starboardDock[0] * gridScale)) - (refugeeShip.xOffset + (refugeeShip.starboardDock[0] * gridScale));
     System.out.println("Distance is: " + distance);
     if (distance > 1) {
       currentVelocity -= 0.35 / (1 + distance);
       refugeeShip.moveShip(currentVelocity,0);
     } else {
-      refugeeShip.setOffset(newLayout.xOffset, refugeeShip.yOffset);
+      refugeeShip.setOffset(newLayout.xOffset + ((newLayout.starboardDock[0] - refugeeShip.starboardDock[0]) * gridScale), refugeeShip.yOffset);
       stageActive = 2;
       System.out.println("moving to Stage 2");
     }

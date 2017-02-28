@@ -40,7 +40,7 @@ class Population_Module {
   
   void updatePopulation() {
       maxPop = (int)newLayout.getPopMaxTotal();
-      if(Math.random() < (0.01*totalPop)) {
+      if(Math.random() < (0.001*totalPop)) {
         double foodSurplus = resModule.getStores() - (10 * (totalPop * consumptionRate)); //amount of food left after 10 ticks at current consumption
         double percentageOversupply = foodSurplus / (100 * (totalPop * consumptionRate));
         if (percentageOversupply > 0) {

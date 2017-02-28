@@ -14,7 +14,7 @@ class Travel_Module {
   }
   
   public void update() {
-    velocity += newLayout.getEngineForce() / shipMass * (Energy_Module.energyConsumption * Energy_Module.energyToEngines);  
+    velocity += newLayout.getEngineForce() / shipMass * (Energy_Module.getEngineUsage());  
     shipMass = newLayout.volume * massModifier;
     distanceTravelled += velocity;
     if (velocity > (c * 0.01)) {

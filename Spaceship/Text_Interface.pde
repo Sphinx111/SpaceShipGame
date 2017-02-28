@@ -82,15 +82,12 @@ class textPanel {
   
   int getTextAnswer () {
     if (mousePressed && option1Over) {
-      System.out.println("Option 1 Clicked");
       return 1;
     }
     if (mousePressed && option2Over) {
-      System.out.println("Option 2 Clicked");
       return 2;
     }
     else {
-      System.out.println("No Option Clicked");
       return 0;
     }
   }
@@ -116,7 +113,6 @@ class refugeeText extends textPanel {
   }
   
   void mouseCheck() {
-    System.out.println("Text Box Checking mouseClick");
     int textAnswer = super.getTextAnswer();
     
     if (textAnswer == 1) {

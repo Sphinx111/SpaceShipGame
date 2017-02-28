@@ -62,8 +62,8 @@ class UI_Panel {
     //text("" + df2.format(scroll1Ratio), scrollbarX + scrollbarWidth, scrollbar1Y+2);
     //hs1.display();
     fill(20);
-    text("Energy: ", scrollbarX-60,scrollbar2Y+2);
-    text("" + df2.format(Energy_Module.energyConsumption) + " GJ per day", scrollbarX + scrollbarWidth, scrollbar2Y+2);
+    text(df2.format((100-(100*hs2.getPos())))+ "% Engines < ", scrollbarX-120,scrollbar2Y+2);
+    text("> Life Support " + df2.format(hs2.getPos()*100) + "%", scrollbarX + scrollbarWidth + 1, scrollbar2Y+2);
     hs2.display();
     fill(20);
     text("Rationing: ", scrollbarX-60,scrollbar3Y+2);
@@ -126,8 +126,8 @@ class UI_Panel {
     text(distanceText,distanceXPos,40);
     text(velocityText,velocityXPos,velocityYPos);
     text(metalText, metalXPos,40);
-    text(energyText, energyXPos, 40);
-    text(storesText, storesXPos, 40);
+    //text(energyText, energyXPos, 40);
+    text(storesText, energyXPos, 40);
   }
   
   int popXPos = metalXPos;
@@ -149,7 +149,7 @@ class dropDownMenu {
   float yOrigin;
   float xWidth = 120;
   float optionHeight = 20;
-  int numOfOptions = 5;
+  int numOfOptions = 6;
   float yHeight = optionHeight * numOfOptions;
   float option1Y = 10;
   float optionTextOffset = 5;
@@ -158,14 +158,18 @@ class dropDownMenu {
   boolean option3Active = false;
   boolean option4Active = false;
   boolean option5Active = false;
+  boolean option6Active = false;
   int gridX;
   int gridY;
+  Ship_Room clickedRoom;
   
   dropDownMenu(float x, float y, int gX, int gY) {
      xOrigin = x;
      yOrigin = y;
      gridX = gX;
      gridY = gY;
+     gridKey clickedKey = new gridKey(gridX,gridY);
+     clickedRoom = newLayout.layoutMap.get(clickedKey);
   }
   
   void update() {
@@ -177,30 +181,42 @@ class dropDownMenu {
           option3Active = false;
           option4Active = false;
           option5Active = false;
+          option6Active = false;
         } else if (mouseY < yOrigin + (2*optionHeight)) {
           option2Active = true;
           option1Active = false;
           option3Active = false;
           option4Active = false;
           option5Active = false;
+          option6Active = false;
         } else if (mouseY < yOrigin + (3*optionHeight)) {
           option1Active = false;
           option2Active = false;
           option3Active = true;
           option4Active = false;
           option5Active = false;
+          option6Active = false;
         } else if (mouseY < yOrigin + (4*optionHeight)) {
           option4Active = true;
           option3Active = false;
           option2Active = false;
           option1Active = false;
           option5Active = false;
+          option6Active = false;
         } else if (mouseY < yOrigin + (5*optionHeight)) {
           option4Active = false;
           option3Active = false;
           option2Active = false;
           option1Active = false;
           option5Active = true;
+          option6Active = false;
+        } else if (mouseY < yOrigin + (6*optionHeight)) {
+          option4Active = false;
+          option3Active = false;
+          option2Active = false;
+          option1Active = false;
+          option5Active = false;
+          option6Active = true;
         }
       }
       if (option1Active && mousePressed) {
@@ -217,41 +233,53 @@ class dropDownMenu {
       } else if (option5Active && mousePressed) {
         newLayout.addEngine(gridX,gridY);
         mainUI.activeDropdown = null;
+      } else if (option6Active && mousePressed) {
+        if (clickedRoom.isFront) {
+          newLayout.addBussardScoop(gridX, gridY);
+        } else {
+          newLayout.removeBussardScoop(gridX,gridY);
+        }
+        mainUI.activeDropdown = null;
       }
   }
   
   void show() {
     fill(255);
-    rect(xOrigin,yOrigin,xWidth,yHeight); //bounding box
     stroke(0);
-    //first optionBox
-    if (!option1Active) {
-    noFill();
-    } else {
-      fill(20);
-    }
-    rect(xOrigin,yOrigin,xWidth,optionHeight); //first option panel
-    if (!option1Active) {
-      fill(0);
-    } else {
-      fill(255);
-    }
+    rect(xOrigin,yOrigin,xWidth,yHeight); //bounding box
     textSize(10);
-    text("+Energy (10m)", xOrigin + optionTextOffset,yOrigin+option1Y);
     
-    //second optionBox
-    if (!option2Active) {
+    if (clickedRoom.canBuildGenerator()) {
+      //first optionBox
+      if (!option1Active) {
       noFill();
-    } else {
-      fill(20);
+      } else {
+        fill(20);
+      }
+      rect(xOrigin,yOrigin,xWidth,optionHeight); //first option panel
+      if (!option1Active) {
+        fill(0);
+      } else {
+        fill(255);
+      }
+      text("+Energy (10m)", xOrigin + optionTextOffset,yOrigin+option1Y);
     }
-    rect(xOrigin,yOrigin + optionHeight,xWidth,optionHeight); //second option panel
-    if (!option2Active) {
-      fill(0);
-    } else {
-      fill(255);
+    
+    if (clickedRoom.canBuildStores()) {
+      //second optionBox
+      if (!option2Active) {
+        noFill();
+      } else {
+        fill(20);
+      }
+      rect(xOrigin,yOrigin + optionHeight,xWidth,optionHeight); //second option panel
+      if (!option2Active) {
+        fill(0);
+      } else {
+        fill(255);
+      }
+      text("+Stores (5m)", xOrigin + optionTextOffset,yOrigin+option1Y+optionHeight);
     }
-    text("+Stores (5m)", xOrigin + optionTextOffset,yOrigin+option1Y+optionHeight);
     
     //third optionBox
     if (!option3Active) {
@@ -267,33 +295,59 @@ class dropDownMenu {
     }
     text("Cancel", xOrigin + optionTextOffset,yOrigin+option1Y+(2*optionHeight));
     
-    //fourth optionBox
-    if (!option4Active) {
-      noFill();
-    } else {
-      fill(20);
+    if (clickedRoom.canBuildLifeSupport() || clickedRoom.lifeSupportActive) {
+      //fourth optionBox
+      if (!option4Active) {
+        noFill();
+      } else {
+        fill(20);
+      }
+      rect(xOrigin,yOrigin + (3 * optionHeight),xWidth,optionHeight); //second option panel
+      if (!option4Active) {
+        fill(0);
+      } else {
+        fill(255);
+      }
+      text("togg lifeSupp (10m)", xOrigin + optionTextOffset,yOrigin+option1Y+(3*optionHeight));
     }
-    rect(xOrigin,yOrigin + (3 * optionHeight),xWidth,optionHeight); //second option panel
-    if (!option4Active) {
-      fill(0);
-    } else {
-      fill(255);
-    }
-    text("togg lifeSupp (10m)", xOrigin + optionTextOffset,yOrigin+option1Y+(3*optionHeight));
     
-    //fifth optionBox
-    if (!option5Active) {
+    if (clickedRoom.canBuildEngine()) {
+      //fifth optionBox
+      if (!option5Active) {
+        noFill();
+      } else {
+        fill(20);
+      }
+      rect(xOrigin,yOrigin + (4 * optionHeight),xWidth,optionHeight); //second option panel
+      if (!option5Active) {
+        fill(0);
+      } else {
+        fill(255);
+      }
+      text("+Engine (50m)", xOrigin + optionTextOffset,yOrigin+option1Y+(4*optionHeight));
+    }
+    
+    //sixth optionBox
+    if (!option6Active) {
       noFill();
     } else {
       fill(20);
     }
-    rect(xOrigin,yOrigin + (4 * optionHeight),xWidth,optionHeight); //second option panel
-    if (!option5Active) {
+    rect(xOrigin,yOrigin + (5 * optionHeight),xWidth,optionHeight); //second option panel
+    if (!option6Active) {
       fill(0);
     } else {
       fill(255);
     }
-    text("+Engine (50m)", xOrigin + optionTextOffset,yOrigin+option1Y+(4*optionHeight));
+    String bussardText = "";
+    if (clickedRoom.isFront) {
+      bussardText = "+Bussard (2m)";
+    } else if (clickedRoom.bussardScoop > 0) {
+      bussardText = "remove Bussard";
+    } else {
+      bussardText = "=FrontOfShipOnly=";
+    }
+      text(bussardText, xOrigin + optionTextOffset,yOrigin+option1Y+(5*optionHeight));
     
     textSize(12);
   }
