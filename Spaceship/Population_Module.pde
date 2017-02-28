@@ -40,11 +40,11 @@ class Population_Module {
   
   void updatePopulation() {
       maxPop = (int)newLayout.getPopMaxTotal();
-      if(Math.random() < (0.001*totalPop)) {
+      if(Math.random() < (0.001*totalPop) && totalPop < maxPop) {
         double foodSurplus = resModule.getStores() - (10 * (totalPop * consumptionRate)); //amount of food left after 10 ticks at current consumption
         double percentageOversupply = foodSurplus / (100 * (totalPop * consumptionRate));
         if (percentageOversupply > 0) {
-          totalPop += constrain((int)Math.floor(totalPop * percentageOversupply),0,(totalPop*0.1));
+          totalPop += constrain((int)Math.floor(totalPop * percentageOversupply),0,(totalPop*0.2));
         }
       }
     if (resModule.getStores() <= (consumptionRate * totalPop)) {
@@ -57,7 +57,12 @@ class Population_Module {
       }
     }
     if (totalPop > maxPop) {
-      totalPop = maxPop;
+      if (Math.random() < 0.2) {
+        totalPop -= Math.floor((totalPop - maxPop) / 5) + 1;
+      }
+    }
+    if (totalPop < 0) {
+      totalPop = 0;
     }
   }
   

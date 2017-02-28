@@ -24,7 +24,7 @@ class Ship_Layout {
   float ENERGY_UPGRADE_MAX = 100;
   float ENERGY_POP_PENALTY = 8;
   float STORES_UPGRADE_COST = 5;
-  float STORES_UPGRADE_EFFECT = 20;
+  float STORES_UPGRADE_EFFECT = 10;
   float STORES_UPGRADE_MAX = 100;
   float STORES_POP_PENALTY = 5;
   float BUSSARD_UPGRADE_COST = 2;
@@ -48,9 +48,10 @@ class Ship_Layout {
            if (x == 0) {
              layoutMap.get(newKey).energyGeneration = 10;
            } else if (x == 1 && y == 0) {
-             layoutMap.get(newKey).storesProduction = 20;
+             layoutMap.get(newKey).storesProduction = 10;
            } else if (x == 3) {
              layoutMap.get(newKey).lifeSupportActive = true;
+             layoutMap.get(newKey).bussardScoop = BUSSARD_UPGRADE_EFFECT;
            }
          }
        }
@@ -130,7 +131,7 @@ class Ship_Layout {
     Ship_Room currentRoom = layoutMap.get(newKey);
     if (currentRoom.canBuildGenerator()) {
       currentRoom.energyGeneration += ENERGY_UPGRADE_EFFECT;
-      currentRoom.populationCapacity -= ENERGY_POP_PENALTY;
+      //currentRoom.populationCapacity -= ENERGY_POP_PENALTY;
       resModule.addMetals(-ENERGY_UPGRADE_COST);
     }
   }
@@ -140,7 +141,7 @@ class Ship_Layout {
     Ship_Room currentRoom = layoutMap.get(newKey);
     if (currentRoom.canBuildStores()) {
       currentRoom.storesProduction += STORES_UPGRADE_EFFECT;
-      currentRoom.populationCapacity -= STORES_POP_PENALTY;
+      //currentRoom.populationCapacity -= STORES_POP_PENALTY;
       resModule.addMetals(-STORES_UPGRADE_COST);
     }
   }
@@ -150,7 +151,7 @@ class Ship_Layout {
     Ship_Room currentRoom = layoutMap.get(newKey);
     if (currentRoom.canBuildEngine()) {
       currentRoom.engineForce += ENGINE_UPGRADE_EFFECT;
-      currentRoom.populationCapacity -= ENGINE_POP_PENALTY;
+      //currentRoom.populationCapacity -= ENGINE_POP_PENALTY;
       resModule.addMetals(-ENGINE_UPGRADE_COST);
     }
   }
@@ -183,7 +184,7 @@ class Ship_Layout {
     Ship_Room currentRoom = layoutMap.get(newKey);
     if (currentRoom.canBuildBussard()) {
       currentRoom.bussardScoop += BUSSARD_UPGRADE_EFFECT;
-      currentRoom.populationCapacity -= BUSSARD_POP_PENALTY;
+      //currentRoom.populationCapacity -= BUSSARD_POP_PENALTY;
       resModule.addMetals(-BUSSARD_UPGRADE_COST);
     }
   }
@@ -192,7 +193,7 @@ class Ship_Layout {
     gridKey newKey = new gridKey(x,y);
     Ship_Room currentRoom = layoutMap.get(newKey);
     currentRoom.bussardScoop = 0;
-    currentRoom.populationCapacity += BUSSARD_POP_PENALTY;
+    //currentRoom.populationCapacity += BUSSARD_POP_PENALTY;
     resModule.addMetals(BUSSARD_REMOVE_VALUE);
   }
   
@@ -292,7 +293,7 @@ class Ship_Layout {
       if (!frontOfShip.containsKey(room.coords[1])) {
         frontOfShip.put(room.coords[1],room.coords[0]);
         room.isFront = true;
-      } else if (room.coords[0] > frontOfShip.get(room.coords[1])) {
+      } else if (room.coords[0] >= frontOfShip.get(room.coords[1])) {
         gridKey removerKey = new gridKey(frontOfShip.get(room.coords[1]),room.coords[1]);
         layoutMap.get(removerKey).isFront = false;
         frontOfShip.put(room.coords[1],room.coords[0]);

@@ -98,11 +98,15 @@ static class Energy_Module {
 static class Stores_Module {
   
   static float storesProduction = 0;
+  static float maxStores = 100 * newLayout.volume;
   
   static double updateStores(double currentStores) {
      storesProduction = newLayout.getStoresProduction();
      if (currentStores >= 0) {
      double newStores = currentStores - (popModule.getConsumption()) + storesProduction;
+     if (newStores > maxStores) {
+       newStores = maxStores;
+     }
      return newStores;
      } else {
        return 0;
@@ -128,11 +132,13 @@ static class Oxygen_Module {
   // static float O2Reserves = 100;
   static float diffusionRate = 0.4;
   static float acceptableO2difference = 0;
-  static float O2consumptionRate = 5; //Percent Oxygen consumed by person, per room, per tick
+  static float O2consumptionRate = 0.1; //Percent Oxygen consumed by person, per tick
   static float O2ProductionRate = 0;
-  static float lifeSupportModifier = 100;
+  static float O2ProductionModifier = 1;
   
   static void updateO2(Ship_Layout thisShip, Ship_Room currentRoom) {
+    O2ProductionRate = 0;
+    
     Ship_Room[] adjacentRooms = thisShip.getAdjacentRooms(currentRoom.coords[0],currentRoom.coords[1]);
     for (Ship_Room room : adjacentRooms) {
       float O2Transfer = 0;
@@ -143,13 +149,16 @@ static class Oxygen_Module {
       }
     }
     
-    float occupationModifier = popModule.totalPop / (thisShip.volume + 1);
+    double occupationModifier = popModule.getPop() / ((float)thisShip.volume + 1);
     if (currentRoom.lifeSupportActive) {
-      O2ProductionRate = (float)Energy_Module.getO2Usage() / thisShip.volume;
-    } else {
-      O2ProductionRate = (float)Energy_Module.getO2Usage() / thisShip.volume * (1/lifeSupportModifier);
+      O2ProductionRate = (float)Energy_Module.getO2Usage() / ((float)thisShip.volume + 1) * O2ProductionModifier;
     }
-    currentRoom.O2Percent += O2ProductionRate - (occupationModifier * O2consumptionRate) ;
+    currentRoom.O2Percent += O2ProductionRate - (occupationModifier * O2consumptionRate);
+    if (currentRoom.O2Percent < 0) {
+      currentRoom.O2Percent = 0;
+    } else if (currentRoom.O2Percent > 100) {
+      currentRoom.O2Percent = 100;
+    }
   }
   
 }
